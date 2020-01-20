@@ -24,44 +24,6 @@ def find_dependencies():
 
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     
-    # 
-    # find atlas library (try pkgconfig, if that fails look at usual places)
-    #
-
-    print ("looking for atlas library, trying pkg-config first...")
-
-    status, output = getstatusoutput(["pkg-config", "--libs", "--cflags", "atlas"])
-
-    if status != 0:
-
-        print ("looking for atlas library, trying hard-coded paths...")
-
-        found = False
-        
-        for libdir in ['/usr/lib', '/usr/lib64', '/usr/lib/x86_64-linux-gnu', '/usr/lib/i386-linux-gnu']:
-        	if os.path.isfile('%s/libatlas.so.3' % libdir):
-        		found=True
-        		break
-        if not found:
-        	raise Exception ('Failed to find libatlas.so.3 on your system.')
-        
-        kw.setdefault('libraries', []).append('%s/atlas.so.3' % libdir)
-        kw.setdefault('libraries', []).append('%s/cblas.so.3' % libdir)
-        kw.setdefault('libraries', []).append('%s/f77blas.so.3' % libdir)
-        kw.setdefault('libraries', []).append('%s/lapack_atlas.so.3' % libdir)
-        
-        if not os.path.isdir('/usr/include/atlas'):
-            raise Exception ('Failed to find atlas includes your system.')
-        
-        kw.setdefault('include_dirs', []).append('/usr/include/atlas')
-
-        print ("looking for atlas library, found it.")
-    else:
-        print ("looking for atlas library, pkg-config found it")
-        for token in output.split():
-            token = token.decode('utf8')
-            kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
-    
     #
     # pkgconfig: kaldi-asr
     #
@@ -95,12 +57,12 @@ ext_modules += [
     Extension("kaldiasr.nnet3", 
               sources  = [ "kaldiasr/nnet3.pyx", "kaldiasr/nnet3_wrappers.cpp" ],
               language = "c++", 
-              extra_compile_args = [ '-Wall', '-pthread', '-std=c++11', '-DKALDI_DOUBLEPRECISION=0', '-Wno-sign-compare', '-Wno-unused-local-typedefs', '-Winit-self', '-DHAVE_EXECINFO_H=1', '-DHAVE_CXXABI_H', '-DHAVE_ATLAS', '-g'  ],
+              extra_compile_args = [ '-Wall', '-pthread', '-std=c++11', '-DKALDI_DOUBLEPRECISION=0', '-Wno-sign-compare', '-Wno-unused-local-typedefs', '-Winit-self', '-DHAVE_EXECINFO_H=1', '-DHAVE_CXXABI_H', '-g'  ],
               **find_dependencies()),
 	Extension("kaldiasr.gmm", 
 			  sources  = [ "kaldiasr/gmm.pyx", "kaldiasr/gmm_wrappers.cpp" ],
 			  language = "c++", 
-			  extra_compile_args = [ '-Wall', '-pthread', '-std=c++11', '-DKALDI_DOUBLEPRECISION=0', '-Wno-sign-compare', '-Wno-unused-local-typedefs', '-Winit-self', '-DHAVE_EXECINFO_H=1', '-DHAVE_CXXABI_H', '-DHAVE_ATLAS', '-g'  ],
+			  extra_compile_args = [ '-Wall', '-pthread', '-std=c++11', '-DKALDI_DOUBLEPRECISION=0', '-Wno-sign-compare', '-Wno-unused-local-typedefs', '-Winit-self', '-DHAVE_EXECINFO_H=1', '-DHAVE_CXXABI_H', '-g'  ],
 			  **find_dependencies()),
 ]
 cmdclass.update({ 'build_ext': build_ext })

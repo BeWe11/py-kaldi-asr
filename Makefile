@@ -1,5 +1,5 @@
 CFLAGS = -Wall -pthread -std=c++11 -DKALDI_DOUBLEPRECISION=0 -Wno-sign-compare \
-         -Wno-unused-local-typedefs -Winit-self -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H -DHAVE_ATLAS \
+         -Wno-unused-local-typedefs -Winit-self -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H \
          `pkg-config --cflags kaldi-asr` -g
 
 LDFLAGS = -rdynamic -lm -lpthread -ldl `pkg-config --libs kaldi-asr`
