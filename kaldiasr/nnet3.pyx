@@ -71,7 +71,7 @@ cdef class KaldiNNet3OnlineModel:
 
     def __cinit__(self, object modeldir, 
                         object model                    = None,
-                        float  beam                     = 7.0, # nnet3: 15.0
+                        float  beam                     = 15.0, # nnet3: 15.0 | py-kaldi-asr: 7.0
                         int    max_active               = 7000,
                         int    min_active               = 200,
                         float  lattice_beam             = 8.0, 
