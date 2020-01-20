@@ -1,4 +1,4 @@
-kaldi_root=/apps/kaldi
+kaldi_root=/Users/ben/projects/dialogue/external/kaldi
 
 Name: kaldi-asr
 Description: kaldi-asr speech recognition toolkit
