@@ -31,6 +31,7 @@
 #include "decoder/lattice-faster-decoder.h"
 #include "decoder/lattice-faster-decoder.h"
 #include "nnet3/decodable-simple-looped.h"
+#include "online2/online-endpoint.h"
 
 namespace kaldi {
     class NNet3OnlineModelWrapper {
@@ -48,7 +49,8 @@ namespace kaldi {
                                 std::string &fst_in_str,
                                 std::string &mfcc_config,
                                 std::string &ie_conf_filename,
-                                std::string &align_lex_filename
+                                std::string &align_lex_filename,
+                                std::string &silence_phones
                                ) ;
         ~NNet3OnlineModelWrapper();
 
@@ -73,6 +75,8 @@ namespace kaldi {
 
         // word alignment:
         std::vector<std::vector<int32> >           word_alignment_lexicon;
+
+        std::string                                silence_phones;
     };
 
     class NNet3OnlineDecoderWrapper {
@@ -84,7 +88,8 @@ namespace kaldi {
         bool               decode(BaseFloat  samp_freq, 
                                   int32      num_frames, 
                                   BaseFloat *frames, 
-                                  bool       finalize);
+                                  bool       finalize,
+                                  bool       endpointing);
 
         void               get_decoded_string(std::string &decoded_string, 
                                               double &likelihood);
@@ -104,6 +109,7 @@ namespace kaldi {
         OnlineSilenceWeighting                    *silence_weighting;
         nnet3::DecodableNnetSimpleLoopedInfo      *decodable_info;
         SingleUtteranceNnet3Decoder               *decoder;
+        OnlineEndpointConfig                      endpoint_config;
 
         std::vector<std::pair<int32, BaseFloat> >  delta_weights;
         int32                                      tot_frames, tot_frames_decoded;

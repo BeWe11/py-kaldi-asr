@@ -46,6 +46,8 @@ namespace kaldi {
         tot_frames         = 0;
         tot_frames_decoded = 0;
 
+        endpoint_config.silence_phones = model->silence_phones;
+
 #if VERBOSE
         KALDI_LOG << "alloc: OnlineIvectorExtractorAdaptationState";
 #endif
@@ -217,7 +219,7 @@ namespace kaldi {
 
 
 
-    bool NNet3OnlineDecoderWrapper::decode(BaseFloat samp_freq, int32 num_frames, BaseFloat *frames, bool finalize) {
+    bool NNet3OnlineDecoderWrapper::decode(BaseFloat samp_freq, int32 num_frames, BaseFloat *frames, bool finalize, bool endpointing) {
 
         using fst::VectorFst;
 
@@ -235,6 +237,10 @@ namespace kaldi {
         KALDI_LOG << "AcceptWaveform...";
 #endif
         feature_pipeline->AcceptWaveform(samp_freq, wave_part);
+
+        if (endpointing && (decoder->NumFramesDecoded() > 0) && decoder->EndpointDetected(endpoint_config)) {
+          finalize = true;
+        }
 
         if (finalize) {
             // no more input. flush out last frames
@@ -271,7 +277,7 @@ namespace kaldi {
 
         }
         
-        return true;
+        return finalize;
     }
 
 
@@ -297,7 +303,8 @@ namespace kaldi {
                                                      std::string &fst_in_str,
                                                      std::string &mfcc_config,
                                                      std::string &ie_conf_filename,
-                                                     std::string &align_lex_filename)
+                                                     std::string &align_lex_filename,
+                                                     std::string &silence_phones)
 
     {
 
@@ -313,6 +320,7 @@ namespace kaldi {
         KALDI_LOG << "mfcc_config:               " << mfcc_config;
         KALDI_LOG << "ie_conf_filename:          " << ie_conf_filename;
         KALDI_LOG << "align_lex_filename:        " << align_lex_filename;
+        KALDI_LOG << "silence_phones:            " << silence_phones;
 #else
         // silence kaldi output as well
         SetLogHandler(silent_log_handler);
@@ -327,6 +335,7 @@ namespace kaldi {
         lattice_faster_decoder_config.lattice_beam = lattice_beam;
         decodable_opts.acoustic_scale              = acoustic_scale;
         decodable_opts.frame_subsampling_factor    = frame_subsampling_factor;
+        this->silence_phones                       = silence_phones;
 
         feature_info = new OnlineNnet2FeaturePipelineInfo(this->feature_config);
 

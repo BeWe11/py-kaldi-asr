@@ -52,13 +52,13 @@ cdef extern from "nnet3_wrappers.h" namespace "kaldi":
 
     cdef cppclass NNet3OnlineModelWrapper:
         NNet3OnlineModelWrapper() except +
-        NNet3OnlineModelWrapper(float, int, int, float, float, int, string, string, string, string, string, string) except +
+        NNet3OnlineModelWrapper(float, int, int, float, float, int, string, string, string, string, string, string, string) except +
 
     cdef cppclass NNet3OnlineDecoderWrapper:
         NNet3OnlineDecoderWrapper() except +
         NNet3OnlineDecoderWrapper(NNet3OnlineModelWrapper *) except +
 
-        bint decode(float, int, float *, bint) except +
+        bint decode(float, int, float *, bint, bint) except +
 
         void get_decoded_string(string &, float &) except +
         bint get_word_alignment(vector[string] &, vector[int] &, vector[int] &) except +
@@ -90,22 +90,29 @@ cdef class KaldiNNet3OnlineModel:
         else:
             self.model        = _text(model)
 
-        cdef unicode mfcc_config           = u'%s/conf/mfcc_hires.conf'                  % self.modeldir
-        cdef unicode word_symbol_table     = u'%s/%s/graph/words.txt'                    % (self.modeldir, self.model)
-        cdef unicode model_in_filename     = u'%s/%s/final.mdl'                          % (self.modeldir, self.model)
-        cdef unicode splice_conf_filename  = u'%s/ivectors_test_hires/conf/splice.conf'  % self.modeldir
-        cdef unicode fst_in_str            = u'%s/%s/graph/HCLG.fst'                     % (self.modeldir, self.model)
-        cdef unicode align_lex_filename    = u'%s/%s/graph/phones/align_lexicon.int'     % (self.modeldir, self.model)
+        cdef unicode mfcc_config             = u'%s/conf/mfcc_hires.conf'                  % self.modeldir
+        cdef unicode word_symbol_table       = u'%s/%s/graph/words.txt'                    % (self.modeldir, self.model)
+        cdef unicode model_in_filename       = u'%s/%s/final.mdl'                          % (self.modeldir, self.model)
+        cdef unicode splice_conf_filename    = u'%s/ivectors_test_hires/conf/splice.conf'  % self.modeldir
+        cdef unicode fst_in_str              = u'%s/%s/graph/HCLG.fst'                     % (self.modeldir, self.model)
+        cdef unicode align_lex_filename      = u'%s/%s/graph/phones/align_lexicon.int'     % (self.modeldir, self.model)
+        cdef unicode silence_phones_filename = u'%s/data/lang/phones/silence.csl'          % self.modeldir
+        cdef unicode silence_phones          = u""
 
         #
         # make sure all model files required exist
         #
 
-        for conff in [mfcc_config, word_symbol_table, model_in_filename, splice_conf_filename, fst_in_str, align_lex_filename]:
+        for conff in [mfcc_config, word_symbol_table, model_in_filename, splice_conf_filename, fst_in_str, align_lex_filename, silence_phones_filename]:
             if not os.path.isfile(conff.encode('utf8')): 
                 raise Exception ('%s not found.' % conff)
             if not os.access(conff.encode('utf8'), os.R_OK):
                 raise Exception ('%s is not readable' % conff) 
+
+        with open(silence_phones_filename, 'r') as f:
+            # The list of phonemes can be found in the first line of the file,
+            # we need this line as astring without the newline char
+            silence_phones = f.read().splitlines()[0]
 
         #
         # generate ivector_extractor.conf
@@ -142,7 +149,8 @@ cdef class KaldiNNet3OnlineModel:
                                                          fst_in_str.encode('utf8'), 
                                                          mfcc_config.encode('utf8'),
                                                          self.ie_conf_f.name.encode('utf8'),
-                                                         align_lex_filename.encode('utf8'))
+                                                         align_lex_filename.encode('utf8'),
+                                                         silence_phones.encode('utf8'))
 
     def __dealloc__(self):
         if self.ie_conf_f:
@@ -166,8 +174,8 @@ cdef class KaldiNNet3OnlineDecoder:
     def __dealloc__(self):
         del self.decoder_wrapper
 
-    def decode(self, samp_freq, cnp.ndarray[float, ndim=1, mode="c"] samples not None, finalize):
-        return self.decoder_wrapper.decode(samp_freq, samples.shape[0], <float *> samples.data, finalize)
+    def decode(self, samp_freq, cnp.ndarray[float, ndim=1, mode="c"] samples not None, finalize, endpointing):
+        return self.decoder_wrapper.decode(samp_freq, samples.shape[0], <float *> samples.data, finalize, endpointing)
 
     def get_decoded_string(self):
         cdef string decoded_string
@@ -204,5 +212,5 @@ cdef class KaldiNNet3OnlineDecoder:
 
         wavf.close()
 
-        return self.decode(wavf.getframerate(), np.array(samples, dtype=np.float32), True)
+        return self.decode(wavf.getframerate(), np.array(samples, dtype=np.float32), True, False)
 
