@@ -35,26 +35,26 @@ from kaldiasr.nnet3 import KaldiNNet3OnlineModel, KaldiNNet3OnlineDecoder
 # this is useful for benchmarking purposes
 NUM_DECODER_RUNS = 1
 
-MODELDIR    = 'data/models/kaldi-generic-en-tdnn_sp-latest'
+MODELDIR    = '/Users/ben/models/adapted_model_bizzl2'
 # MODELDIR    = 'data/models/kaldi-generic-de-tdnn_sp-latest'
-WAVFILE     = 'data/dw961.wav'
+WAVFILE     = '/Users/ben/projects/dialogue/internal/test_google_stt/resources/bizzl.wav'
 # WAVFILE     = 'data/gsp1.wav'
 
-print '%s loading model...' % MODELDIR
+print('%s loading model...' % MODELDIR)
 time_start = time()
-kaldi_model = KaldiNNet3OnlineModel (MODELDIR)
-print '%s loading model... done, took %fs.' % (MODELDIR, time()-time_start)
+kaldi_model = KaldiNNet3OnlineModel (MODELDIR, beam=15)
+print('%s loading model... done, took %fs.' % (MODELDIR, time()-time_start))
 
-print '%s creating decoder...' % MODELDIR
+print('%s creating decoder...' % MODELDIR)
 time_start = time()
 decoder = KaldiNNet3OnlineDecoder (kaldi_model)
-print '%s creating decoder... done, took %fs.' % (MODELDIR, time()-time_start)
+print('%s creating decoder... done, took %fs.' % (MODELDIR, time()-time_start))
 
 for i in range(NUM_DECODER_RUNS):
 
     time_start = time()
 
-    print 'decoding %s...' % WAVFILE
+    print('decoding %s...' % WAVFILE)
     wavf = wave.open(WAVFILE, 'rb')
 
     # check format
@@ -63,7 +63,7 @@ for i in range(NUM_DECODER_RUNS):
 
     # process file in 250ms chunks
 
-    chunk_frames = 250 * wavf.getframerate() / 1000
+    chunk_frames = int(250 * wavf.getframerate() / 1000)
     tot_frames   = wavf.getnframes()
 
     num_frames = 0
@@ -80,21 +80,21 @@ for i in range(NUM_DECODER_RUNS):
         num_frames += nframes
         samples = struct.unpack_from('<%dh' % nframes, frames)
 
-        decoder.decode(wavf.getframerate(), np.array(samples, dtype=np.float32), finalize)
+        decoder.decode(wavf.getframerate(), np.array(samples, dtype=np.float32), finalize, False)
 
         s, l = decoder.get_decoded_string()
 
-        print "%6.3fs: %5d frames (%6.3fs) decoded. %s" % (time()-time_start, num_frames, float(num_frames) / float(wavf.getframerate()), s)
+        print("%6.3fs: %5d frames (%6.3fs) decoded. %s" % (time()-time_start, num_frames, float(num_frames) / float(wavf.getframerate()), s))
 
     wavf.close()
 
     s, l = decoder.get_decoded_string()
-    print
-    print "*****************************************************************"
-    print "**", WAVFILE
-    print "**", s
-    print "** %s likelihood:" % MODELDIR, l
-    print "*****************************************************************"
-    print
-    print "%s decoding took %8.2fs" % (MODELDIR, time() - time_start )
+    print()
+    print("*****************************************************************")
+    print("**", WAVFILE)
+    print("**", s)
+    print("** %s likelihood:" % MODELDIR, l)
+    print("*****************************************************************")
+    print()
+    print("%s decoding took %8.2fs" % (MODELDIR, time() - time_start ))
 

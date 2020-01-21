@@ -24,32 +24,29 @@
 
 from kaldiasr.nnet3 import KaldiNNet3OnlineModel, KaldiNNet3OnlineDecoder
 
-MODELDIR    = 'data/models/kaldi-generic-en-tdnn_sp-latest'
-# MODELDIR    = 'data/models/kaldi-generic-de-tdnn_sp-latest'
-WAVFILE     = 'data/dw961.wav'
-# WAVFILE     = 'data/fail1.wav'
-# WAVFILE     = 'data/gsp1.wav'
+MODELDIR    = '/Users/ben/models/adapted_model_bizzl2'
+WAVFILE     = '/Users/ben/projects/dialogue/internal/test_google_stt/resources/wahrsteiner.wav'
 
-print "Loading model from %s ..." % MODELDIR
+print("Loading model from %s ..." % MODELDIR)
 
-kaldi_model = KaldiNNet3OnlineModel (MODELDIR)
+kaldi_model = KaldiNNet3OnlineModel (MODELDIR, beam=15, acoustic_scale=1.0, frame_subsampling_factor=3)
 decoder     = KaldiNNet3OnlineDecoder (kaldi_model)
 
-print "Decoding %s ..." % WAVFILE
+print("Decoding %s ..." % WAVFILE)
 
 if decoder.decode_wav_file(WAVFILE):
 
     s, l = decoder.get_decoded_string()
 
-    print
-    print u"*****************************************************************"
-    print u"** %s" % WAVFILE
-    print u"** %s" % s
-    print u"** likelihood: %f" % l
-    print u"*****************************************************************"
-    print
+    print()
+    print("*****************************************************************")
+    print("** %s" % WAVFILE)
+    print("** %s" % s)
+    print("** likelihood: %f" % l)
+    print("*****************************************************************")
+    print()
 
 else:
 
-    print "***ERROR: decoding of %s failed." % WAVFILE
+    print("***ERROR: decoding of %s failed." % WAVFILE)
 

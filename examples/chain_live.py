@@ -55,7 +55,7 @@ STREAM_ID                        = 'mic'
 misc.init_app(PROC_TITLE)
 logging.basicConfig(level=logging.INFO)
 
-print "Kaldi live demo V0.3"
+print("Kaldi live demo V0.3")
 
 #
 # cmdline, logging
@@ -106,7 +106,7 @@ vad = VAD(aggressiveness=aggressiveness)
 # ASR
 #
 
-print "Loading model from %s ..." % model_dir
+print("Loading model from %s ..." % model_dir)
 
 asr = ASR(engine = ASR_ENGINE_NNET3, model_dir = model_dir,
           kaldi_beam = DEFAULT_BEAM, kaldi_acoustic_scale = DEFAULT_ACOUSTIC_SCALE,
@@ -119,7 +119,7 @@ asr = ASR(engine = ASR_ENGINE_NNET3, model_dir = model_dir,
 
 rec.start_recording()
 
-print "Please speak."
+print("Please speak.")
 
 while True:
 
@@ -134,9 +134,9 @@ while True:
 
     user_utt, confidence = asr.decode(audio, finalize, stream_id=STREAM_ID)
 
-    print "\r%s                     " % user_utt,
+    print("\r%s                     " % user_utt, end=' ')
 
     if finalize:
-        print
+        print()
 
 
